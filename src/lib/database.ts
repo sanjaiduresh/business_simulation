@@ -66,27 +66,28 @@ export class D1DatabaseService implements DatabaseService {
     return result;
   }
 
-  async createSimulation(simulation: any): Promise<string> {
-    const id = simulation.id || `sim_${Date.now()}`;
+  // Fixed createSimulation method in database.ts
+async createSimulation(simulation: any): Promise<string> {
+  const id = simulation.id || `sim_${Date.now()}`;
 
-    await this.db.prepare(
-      `INSERT INTO simulations (
-        id, name, description, config, current_period, status, created_by, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).bind(
-      id,
-      simulation.name,
-      simulation.description,
-      simulation.config,
-      simulation.currentPeriod,
-      simulation.status,
-      simulation.createdBy,
-      simulation.createdAt,
-      simulation.updatedAt
-    ).run();
+  await this.db.prepare(
+    `INSERT INTO simulations (
+      id, name, description, config, current_period, status, created_by, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).bind(
+    id,
+    simulation.name || '',
+    simulation.description || '',
+    simulation.config || 'default',
+    simulation.currentPeriod || 0,
+    simulation.status || 'active',
+    simulation.createdBy || '',
+    simulation.createdAt || new Date().toISOString(),
+    simulation.updatedAt || new Date().toISOString()
+  ).run();
 
-    return id;
-  }
+  return id;
+}
 
   async updateSimulation(id: string, simulation: any): Promise<void> {
     await this.db.prepare(

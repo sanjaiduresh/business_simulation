@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   try {
     const token = (await cookies()).get('token')?.value;
     if (!token) {
-      return NextResponse.json({ error: 'Unauthorized adsadsd' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized ' }, { status: 401 });
     }
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
     const userId = decoded.id;
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
   } catch (err) {
     console.error("Failed to fetch simulations:", err);
     if (err instanceof jwt.JsonWebTokenError) {
-      return NextResponse.json({ error: 'Unauthorized ygbuhnmijm' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized ' }, { status: 401 });
     }
     return NextResponse.json({ error: 'Failed to fetch simulations' }, { status: 500 });
   }
