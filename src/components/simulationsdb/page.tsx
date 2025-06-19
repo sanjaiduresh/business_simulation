@@ -24,6 +24,10 @@ interface Company {
 export default function Simulationsdb() {
   const { user } = useAuth();
   const { toast } = useToast();
+  
+  const handleCompanyDetails = (companyId: string) => {
+    window.location.href = `/company/${companyId}`;
+  };
 
   // State for forms
   const [simulationForm, setSimulationForm] = useState({
@@ -35,13 +39,16 @@ export default function Simulationsdb() {
     simulationId: "",
     name: "",
     description: "",
+    cashBalance: "1000000",
+    totalAssets: "1000000",
+    totalLiabilities: "0",
+    creditRating: "AA",
+    brandValue: "50000",
   });
 
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [showCompanyForm, setShowCompanyForm] = useState(false);
-  const [selectedSimulation, setSelectedSimulation] = useState<string | null>(
-    null
-  );
+  const [showCreateSimulationModal, setShowCreateSimulationModal] = useState(false);
+  const [showCreateCompanyModal, setShowCreateCompanyModal] = useState(false);
+  const [selectedSimulation, setSelectedSimulation] = useState<string | null>(null);
   const [simulations, setSimulations] = useState<Simulation[]>([]);
   const [companies, setCompanies] = useState<{ [key: string]: Company[] }>({});
   const [loadingCompanies, setLoadingCompanies] = useState<{
@@ -138,7 +145,7 @@ export default function Simulationsdb() {
         };
         setSimulations([...simulations, simulation]);
         setSimulationForm({ name: "", description: "" });
-        setShowCreateForm(false);
+        setShowCreateSimulationModal(false);
         toast({
           title: "Success",
           description: "Simulation created successfully!",
@@ -169,6 +176,22 @@ export default function Simulationsdb() {
       });
       return;
     }
+    
+    // Validate numeric fields
+    const cashBalance = parseFloat(companyForm.cashBalance);
+    const totalAssets = parseFloat(companyForm.totalAssets);
+    const totalLiabilities = parseFloat(companyForm.totalLiabilities);
+    const brandValue = parseFloat(companyForm.brandValue);
+    
+    if (isNaN(cashBalance) || isNaN(totalAssets) || isNaN(totalLiabilities) || isNaN(brandValue)) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please enter valid numeric values for financial fields.",
+      });
+      return;
+    }
+    
     try {
       const response = await fetch("/api/company/create", {
         method: "POST",
@@ -178,11 +201,11 @@ export default function Simulationsdb() {
           name: companyForm.name,
           description: companyForm.description,
           userId: user?.id,
-          cashBalance: 1000000,
-          totalAssets: 1000000,
-          totalLiabilities: 0,
-          creditRating: "AA",
-          brandValue: 50000,
+          cashBalance,
+          totalAssets,
+          totalLiabilities,
+          creditRating: companyForm.creditRating,
+          brandValue,
           data: "{}",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -198,8 +221,17 @@ export default function Simulationsdb() {
             company,
           ],
         }));
-        setCompanyForm({ simulationId: "", name: "", description: "" });
-        setShowCompanyForm(false);
+        setCompanyForm({
+          simulationId: "",
+          name: "",
+          description: "",
+          cashBalance: "1000000",
+          totalAssets: "1000000",
+          totalLiabilities: "0",
+          creditRating: "AA",
+          brandValue: "50000",
+        });
+        setShowCreateCompanyModal(false);
         setSelectedSimulation(null);
         toast({
           title: "Success",
@@ -223,12 +255,32 @@ export default function Simulationsdb() {
   const handleAddCompany = (simulationId: string) => {
     setSelectedSimulation(simulationId);
     setCompanyForm({ ...companyForm, simulationId });
-    setShowCompanyForm(true);
+    setShowCreateCompanyModal(true);
     fetchCompanies(simulationId);
   };
 
   const handleViewCompanies = (simulationId: string) => {
     fetchCompanies(simulationId);
+  };
+
+  const closeSimulationModal = () => {
+    setShowCreateSimulationModal(false);
+    setSimulationForm({ name: "", description: "" });
+  };
+
+  const closeCompanyModal = () => {
+    setShowCreateCompanyModal(false);
+    setSelectedSimulation(null);
+    setCompanyForm({
+      simulationId: "",
+      name: "",
+      description: "",
+      cashBalance: "1000000",
+      totalAssets: "1000000",
+      totalLiabilities: "0",
+      creditRating: "AA",
+      brandValue: "50000",
+    });
   };
 
   if (loadingSimulations) {
@@ -260,9 +312,7 @@ export default function Simulationsdb() {
         {/* Header */}
         <div className="border-b">
           <div className="container mx-auto px-6 py-4">
-            <h1 className="text-2xl font-semibold">
-              Simulations Dashboar dasdas
-            </h1>
+            <h1 className="text-2xl font-semibold">Simulations Dashboard</h1>
             <h1 className="text-2xl font-semibold">{user?.name}</h1>
             <p className="text-sm text-muted-foreground mt-1">
               Manage and monitor your business simulations
@@ -295,78 +345,78 @@ export default function Simulationsdb() {
               Get started by creating your first simulation
             </p>
 
-            {!showCreateForm ? (
-              <Button
-                size="lg"
-                onClick={() => setShowCreateForm(true)}
-                className="px-8 py-3"
-              >
-                Create Your First Simulation
-              </Button>
-            ) : (
-              <div className="bg-card rounded-lg border p-6 shadow-sm">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium">Create New Simulation</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowCreateForm(false)}
-                    className="h-8 w-8 p-0"
-                  >
-                    ×
-                  </Button>
-                </div>
-                <Form onSubmit={handleCreateSimulation} className="space-y-4">
-                  <FormGroup>
-                    <FormLabel htmlFor="name" className="text-sm font-medium">
-                      Simulation Name
-                    </FormLabel>
-                    <Input
-                      id="name"
-                      name="name"
-                      value={simulationForm.name}
-                      onChange={handleSimulationInput}
-                      placeholder="Enter simulation name"
-                      className="mt-1 h-10 px-3 py-2 border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      required
-                    />
-                  </FormGroup>
-
-                  <FormGroup>
-                    <FormLabel
-                      htmlFor="description"
-                      className="text-sm font-medium"
-                    >
-                      Description
-                    </FormLabel>
-                    <Input
-                      id="description"
-                      name="description"
-                      value={simulationForm.description}
-                      onChange={handleSimulationInput}
-                      placeholder="Enter description"
-                      className="mt-1 h-10 px-3 py-2 border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    />
-                  </FormGroup>
-
-                  <div className="flex gap-2 pt-2">
-                    <Button type="submit" size="sm" className="flex-1">
-                      Create Simulation
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowCreateForm(false)}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </Form>
-              </div>
-            )}
+            <Button
+              size="lg"
+              onClick={() => setShowCreateSimulationModal(true)}
+              className="px-8 py-3"
+            >
+              Create Your First Simulation
+            </Button>
           </div>
         </div>
+
+        {/* Simulation Creation Modal */}
+        {showCreateSimulationModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 shadow-xl">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Create New Simulation</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={closeSimulationModal}
+                  className="h-8 w-8 p-0"
+                >
+                  ×
+                </Button>
+              </div>
+              <Form onSubmit={handleCreateSimulation} className="space-y-4">
+                <FormGroup>
+                  <FormLabel htmlFor="name" className="text-sm font-medium">
+                    Simulation Name
+                  </FormLabel>
+                  <Input
+                    id="name"
+                    name="name"
+                    value={simulationForm.name}
+                    onChange={handleSimulationInput}
+                    placeholder="Enter simulation name"
+                    className="mt-1"
+                    required
+                  />
+                </FormGroup>
+
+                <FormGroup>
+                  <FormLabel htmlFor="description" className="text-sm font-medium">
+                    Description
+                  </FormLabel>
+                  <Input
+                    id="description"
+                    name="description"
+                    value={simulationForm.description}
+                    onChange={handleSimulationInput}
+                    placeholder="Enter description"
+                    className="mt-1"
+                  />
+                </FormGroup>
+
+                <div className="flex gap-2 pt-4">
+                  <Button type="submit" size="sm" className="flex-1">
+                    Create Simulation
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={closeSimulationModal}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </Form>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -383,7 +433,7 @@ export default function Simulationsdb() {
               Manage and monitor your business simulations
             </p>
           </div>
-          <Button onClick={() => setShowCreateForm(true)}>
+          <Button onClick={() => setShowCreateSimulationModal(true)}>
             New Simulation
           </Button>
         </div>
@@ -392,161 +442,6 @@ export default function Simulationsdb() {
       {/* Simulations Grid */}
       <div className="h-[calc(100vh-120px)] overflow-y-auto">
         <div className="container mx-auto px-6 py-6">
-          {/* Create Simulation Form Modal */}
-          {showCreateForm && (
-            <div className="mb-6">
-              <div className="bg-card rounded-lg border p-6 shadow-sm max-w-md">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium">Create New Simulation</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowCreateForm(false)}
-                    className="h-8 w-8 p-0"
-                  >
-                    ×
-                  </Button>
-                </div>
-                <Form onSubmit={handleCreateSimulation} className="space-y-4">
-                  <FormGroup>
-                    <FormLabel
-                      htmlFor="name-grid"
-                      className="text-sm font-medium"
-                    >
-                      Simulation Name
-                    </FormLabel>
-                    <Input
-                      id="name-grid"
-                      name="name"
-                      value={simulationForm.name}
-                      onChange={handleSimulationInput}
-                      placeholder="Enter simulation name"
-                      className="mt-1 h-10 px-3 py-2 border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      required
-                    />
-                  </FormGroup>
-
-                  <FormGroup>
-                    <FormLabel
-                      htmlFor="description-grid"
-                      className="text-sm font-medium"
-                    >
-                      Description
-                    </FormLabel>
-                    <Input
-                      id="description-grid"
-                      name="description"
-                      value={simulationForm.description}
-                      onChange={handleSimulationInput}
-                      placeholder="Enter description"
-                      className="mt-1 h-10 px-3 py-2 border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    />
-                  </FormGroup>
-
-                  <div className="flex gap-2 pt-2">
-                    <Button type="submit" size="sm" className="flex-1">
-                      Create Simulation
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowCreateForm(false)}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </Form>
-              </div>
-            </div>
-          )}
-
-          {/* Create Company Form Modal */}
-          {showCompanyForm && (
-            <div className="mb-6">
-              <div className="bg-card rounded-lg border p-6 shadow-sm max-w-md">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium">Create New Company</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setShowCompanyForm(false);
-                      setSelectedSimulation(null);
-                      setCompanyForm({
-                        simulationId: "",
-                        name: "",
-                        description: "",
-                      });
-                    }}
-                    className="h-8 w-8 p-0"
-                  >
-                    ×
-                  </Button>
-                </div>
-                <Form onSubmit={handleCreateCompany} className="space-y-4">
-                  <FormGroup>
-                    <FormLabel
-                      htmlFor="company-name"
-                      className="text-sm font-medium"
-                    >
-                      Company Name
-                    </FormLabel>
-                    <Input
-                      id="company-name"
-                      name="name"
-                      value={companyForm.name}
-                      onChange={handleCompanyInput}
-                      placeholder="Enter company name"
-                      className="mt-1 h-10 px-3 py-2 border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      required
-                    />
-                  </FormGroup>
-
-                  <FormGroup>
-                    <FormLabel
-                      htmlFor="company-description"
-                      className="text-sm font-medium"
-                    >
-                      Description
-                    </FormLabel>
-                    <Input
-                      id="company-description"
-                      name="description"
-                      value={companyForm.description}
-                      onChange={handleCompanyInput}
-                      placeholder="Enter company description"
-                      className="mt-1 h-10 px-3 py-2 border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    />
-                  </FormGroup>
-
-                  <div className="flex gap-2 pt-2">
-                    <Button type="submit" size="sm" className="flex-1">
-                      Create Company
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setShowCompanyForm(false);
-                        setSelectedSimulation(null);
-                        setCompanyForm({
-                          simulationId: "",
-                          name: "",
-                          description: "",
-                        });
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </Form>
-              </div>
-            </div>
-          )}
-
-          {/* Simulations Grid */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {simulations.map((simulation) => (
               <div
@@ -623,6 +518,13 @@ export default function Simulationsdb() {
                             <p className="text-muted-foreground">
                               Cash: ${company.cashBalance.toLocaleString()}
                             </p>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleCompanyDetails(company.id)}
+                            >
+                              View Details
+                            </Button>
                           </li>
                         ))}
                       </ul>
@@ -634,6 +536,231 @@ export default function Simulationsdb() {
           </div>
         </div>
       </div>
+
+      {/* Simulation Creation Modal */}
+      {showCreateSimulationModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Create New Simulation</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={closeSimulationModal}
+                className="h-8 w-8 p-0"
+              >
+                ×
+              </Button>
+            </div>
+            <Form onSubmit={handleCreateSimulation} className="space-y-4">
+              <FormGroup>
+                <FormLabel htmlFor="sim-name" className="text-sm font-medium">
+                  Simulation Name
+                </FormLabel>
+                <Input
+                  id="sim-name"
+                  name="name"
+                  value={simulationForm.name}
+                  onChange={handleSimulationInput}
+                  placeholder="Enter simulation name"
+                  className="mt-1"
+                  required
+                />
+              </FormGroup>
+
+              <FormGroup>
+                <FormLabel htmlFor="sim-description" className="text-sm font-medium">
+                  Description
+                </FormLabel>
+                <Input
+                  id="sim-description"
+                  name="description"
+                  value={simulationForm.description}
+                  onChange={handleSimulationInput}
+                  placeholder="Enter description"
+                  className="mt-1"
+                />
+              </FormGroup>
+
+              <div className="flex gap-2 pt-4">
+                <Button type="submit" size="sm" className="flex-1">
+                  Create Simulation
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={closeSimulationModal}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </Form>
+          </div>
+        </div>
+      )}
+
+      {/* Company Creation Modal */}
+      {showCreateCompanyModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-4 shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Create New Company</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={closeCompanyModal}
+                className="h-8 w-8 p-0"
+              >
+                ×
+              </Button>
+            </div>
+            <Form onSubmit={handleCreateCompany} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormGroup className="md:col-span-2">
+                  <FormLabel htmlFor="comp-name" className="text-sm font-medium">
+                    Company Name
+                  </FormLabel>
+                  <Input
+                    id="comp-name"
+                    name="name"
+                    value={companyForm.name}
+                    onChange={handleCompanyInput}
+                    placeholder="Enter company name"
+                    className="mt-1"
+                    required
+                  />
+                </FormGroup>
+
+                <FormGroup className="md:col-span-2">
+                  <FormLabel htmlFor="comp-description" className="text-sm font-medium">
+                    Description
+                  </FormLabel>
+                  <Input
+                    id="comp-description"
+                    name="description"
+                    value={companyForm.description}
+                    onChange={handleCompanyInput}
+                    placeholder="Enter company description"
+                    className="mt-1"
+                  />
+                </FormGroup>
+
+                <FormGroup>
+                  <FormLabel htmlFor="cash-balance" className="text-sm font-medium">
+                    Cash Balance ($)
+                  </FormLabel>
+                  <Input
+                    id="cash-balance"
+                    name="cashBalance"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={companyForm.cashBalance}
+                    onChange={handleCompanyInput}
+                    placeholder="1000000"
+                    className="mt-1"
+                    required
+                  />
+                </FormGroup>
+
+                <FormGroup>
+                  <FormLabel htmlFor="total-assets" className="text-sm font-medium">
+                    Total Assets ($)
+                  </FormLabel>
+                  <Input
+                    id="total-assets"
+                    name="totalAssets"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={companyForm.totalAssets}
+                    onChange={handleCompanyInput}
+                    placeholder="1000000"
+                    className="mt-1"
+                    required
+                  />
+                </FormGroup>
+
+                <FormGroup>
+                  <FormLabel htmlFor="total-liabilities" className="text-sm font-medium">
+                    Total Liabilities ($)
+                  </FormLabel>
+                  <Input
+                    id="total-liabilities"
+                    name="totalLiabilities"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={companyForm.totalLiabilities}
+                    onChange={handleCompanyInput}
+                    placeholder="0"
+                    className="mt-1"
+                    required
+                  />
+                </FormGroup>
+
+                <FormGroup>
+                  <FormLabel htmlFor="credit-rating" className="text-sm font-medium">
+                    Credit Rating
+                  </FormLabel>
+                  <select
+                    id="credit-rating"
+                    name="creditRating"
+                    value={companyForm.creditRating}
+                    onChange={(e) => setCompanyForm({ ...companyForm, creditRating: e.target.value })}
+                    className="mt-1 h-10 w-full px-3 py-2 border border-input bg-background rounded-md text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    required
+                  >
+                    <option value="AAA">AAA</option>
+                    <option value="AA">AA</option>
+                    <option value="A">A</option>
+                    <option value="BBB">BBB</option>
+                    <option value="BB">BB</option>
+                    <option value="B">B</option>
+                    <option value="CCC">CCC</option>
+                    <option value="CC">CC</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                  </select>
+                </FormGroup>
+
+                <FormGroup className="md:col-span-2">
+                  <FormLabel htmlFor="brand-value" className="text-sm font-medium">
+                    Brand Value ($)
+                  </FormLabel>
+                  <Input
+                    id="brand-value"
+                    name="brandValue"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={companyForm.brandValue}
+                    onChange={handleCompanyInput}
+                    placeholder="50000"
+                    className="mt-1"
+                    required
+                  />
+                </FormGroup>
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button type="submit" size="sm" className="flex-1">
+                  Create Company
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={closeCompanyModal}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </Form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

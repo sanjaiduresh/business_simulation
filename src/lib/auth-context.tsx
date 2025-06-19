@@ -1,3 +1,4 @@
+"use client";
 import { createContext, useContext, useState, useEffect } from "react";
 import { useDatabase } from "./database-context";
 

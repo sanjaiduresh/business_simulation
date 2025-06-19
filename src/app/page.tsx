@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { AuthProvider } from "../lib/auth-context";
 import { DatabaseProvider } from "../lib/database-context";
 import { AuthPage } from "../components/auth/auth-page";
 import { SimulationProvider } from "../components/simulation/simulation-context";
@@ -50,9 +49,7 @@ function AppContent() {
 export default function App() {
   return (
     <DatabaseProvider>
-      <AuthProvider>
         <AppContent />
-      </AuthProvider>
     </DatabaseProvider>
   );
 }
