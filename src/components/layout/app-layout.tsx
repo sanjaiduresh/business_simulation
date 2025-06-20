@@ -290,24 +290,45 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </SidebarNav>
 
           <SidebarFooter>
-            <div>
-              <div className="flex items-center">
+            <div className="flex justify-between items-center w-full">
+              <div className="flex items-center min-w-0">
                 <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-semibold mr-3">
-                  {userInitials}
+                  {user?.name
+                    ?.split(" ")
+                    .map((n) => n[0])
+                    .join("") || "NN"}
                 </div>
-                <div>
-                  <div className="font-medium text-white">{user?.name}</div>
-                  <div className="text-xs text-gray-400">CEO</div>
+                <div className="min-w-0">
+                  <div className="font-medium text-white truncate max-w-[120px] sm:max-w-[160px]">
+                    {user?.name}
+                  </div>
+                  <div className="text-xs text-gray-400 truncate max-w-[160px] sm:max-w-[200px]">
+                    {user?.email}
+                  </div>
                 </div>
               </div>
-              <div>
-                <button
-                  onClick={handleLogout}
-                  className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full mt-2"
+              <Button
+                onClick={handleLogout}
+                variant="ghost"
+                size="sm"
+                className="text-gray-400 hover:text-white"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
-                  Logout
-                </button>
-              </div>
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+              </Button>
             </div>
           </SidebarFooter>
         </Sidebar>
