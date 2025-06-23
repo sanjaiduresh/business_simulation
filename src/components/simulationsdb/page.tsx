@@ -24,7 +24,7 @@ interface Company {
 export default function Simulationsdb() {
   const { user } = useAuth();
   const { toast } = useToast();
-  
+
   const handleCompanyDetails = (companyId: string) => {
     window.location.href = `/company/${companyId}`;
   };
@@ -46,9 +46,12 @@ export default function Simulationsdb() {
     brandValue: "50000",
   });
 
-  const [showCreateSimulationModal, setShowCreateSimulationModal] = useState(false);
+  const [showCreateSimulationModal, setShowCreateSimulationModal] =
+    useState(false);
   const [showCreateCompanyModal, setShowCreateCompanyModal] = useState(false);
-  const [selectedSimulation, setSelectedSimulation] = useState<string | null>(null);
+  const [selectedSimulation, setSelectedSimulation] = useState<string | null>(
+    null
+  );
   const [simulations, setSimulations] = useState<Simulation[]>([]);
   const [companies, setCompanies] = useState<{ [key: string]: Company[] }>({});
   const [loadingCompanies, setLoadingCompanies] = useState<{
@@ -176,14 +179,19 @@ export default function Simulationsdb() {
       });
       return;
     }
-    
+
     // Validate numeric fields
     const cashBalance = parseFloat(companyForm.cashBalance);
     const totalAssets = parseFloat(companyForm.totalAssets);
     const totalLiabilities = parseFloat(companyForm.totalLiabilities);
     const brandValue = parseFloat(companyForm.brandValue);
-    
-    if (isNaN(cashBalance) || isNaN(totalAssets) || isNaN(totalLiabilities) || isNaN(brandValue)) {
+
+    if (
+      isNaN(cashBalance) ||
+      isNaN(totalAssets) ||
+      isNaN(totalLiabilities) ||
+      isNaN(brandValue)
+    ) {
       toast({
         variant: "destructive",
         title: "Error",
@@ -191,7 +199,7 @@ export default function Simulationsdb() {
       });
       return;
     }
-    
+
     try {
       const response = await fetch("/api/company/create", {
         method: "POST",
@@ -358,21 +366,27 @@ export default function Simulationsdb() {
         {/* Simulation Creation Modal */}
         {showCreateSimulationModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 shadow-xl">
+            <div className="bg-white bg-gray-900 rounded-lg p-6 w-full max-w-md mx-4 shadow-xl">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Create New Simulation</h3>
+                <h3 className="text-lg font-semibold text-gray-900 text-white">
+                  Create New Simulation
+                </h3>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={closeSimulationModal}
-                  className="h-8 w-8 p-0"
+                  className="h-8 w-8 p-0 text-gray-600 dtext-gray-300"
                 >
                   ×
                 </Button>
               </div>
+
               <Form onSubmit={handleCreateSimulation} className="space-y-4">
                 <FormGroup>
-                  <FormLabel htmlFor="name" className="text-sm font-medium">
+                  <FormLabel
+                    htmlFor="name"
+                    className="text-sm font-medium text-gray-800 text-gray-200"
+                  >
                     Simulation Name
                   </FormLabel>
                   <Input
@@ -381,13 +395,16 @@ export default function Simulationsdb() {
                     value={simulationForm.name}
                     onChange={handleSimulationInput}
                     placeholder="Enter simulation name"
-                    className="mt-1"
+                    className="mt-1 h-12 px-4 dark:bg-gray-800 dark:text-white"
                     required
                   />
                 </FormGroup>
 
                 <FormGroup>
-                  <FormLabel htmlFor="description" className="text-sm font-medium">
+                  <FormLabel
+                    htmlFor="description"
+                    className="text-sm font-medium text-gray-800 dark:text-gray-200"
+                  >
                     Description
                   </FormLabel>
                   <Input
@@ -396,7 +413,7 @@ export default function Simulationsdb() {
                     value={simulationForm.description}
                     onChange={handleSimulationInput}
                     placeholder="Enter description"
-                    className="mt-1"
+                    className="mt-1 h-12 px-4 dark:bg-gray-800 dark:text-white"
                   />
                 </FormGroup>
 
@@ -569,7 +586,10 @@ export default function Simulationsdb() {
               </FormGroup>
 
               <FormGroup>
-                <FormLabel htmlFor="sim-description" className="text-sm font-medium">
+                <FormLabel
+                  htmlFor="sim-description"
+                  className="text-sm font-medium"
+                >
                   Description
                 </FormLabel>
                 <Input
@@ -603,22 +623,28 @@ export default function Simulationsdb() {
       {/* Company Creation Modal */}
       {showCreateCompanyModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-4 shadow-xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-gray-900 rounded-lg p-6 w-full max-w-lg mx-4 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Create New Company</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Create New Company
+              </h3>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={closeCompanyModal}
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 text-gray-600 dark:text-gray-300"
               >
                 ×
               </Button>
             </div>
+
             <Form onSubmit={handleCreateCompany} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormGroup className="md:col-span-2">
-                  <FormLabel htmlFor="comp-name" className="text-sm font-medium">
+                  <FormLabel
+                    htmlFor="comp-name"
+                    className="text-sm font-medium text-gray-800 dark:text-gray-200"
+                  >
                     Company Name
                   </FormLabel>
                   <Input
@@ -627,13 +653,16 @@ export default function Simulationsdb() {
                     value={companyForm.name}
                     onChange={handleCompanyInput}
                     placeholder="Enter company name"
-                    className="mt-1"
+                    className="mt-1 dark:bg-gray-800 dark:text-white"
                     required
                   />
                 </FormGroup>
 
                 <FormGroup className="md:col-span-2">
-                  <FormLabel htmlFor="comp-description" className="text-sm font-medium">
+                  <FormLabel
+                    htmlFor="comp-description"
+                    className="text-sm font-medium text-gray-800 dark:text-gray-200"
+                  >
                     Description
                   </FormLabel>
                   <Input
@@ -642,12 +671,15 @@ export default function Simulationsdb() {
                     value={companyForm.description}
                     onChange={handleCompanyInput}
                     placeholder="Enter company description"
-                    className="mt-1"
+                    className="mt-1 dark:bg-gray-800 dark:text-white"
                   />
                 </FormGroup>
 
                 <FormGroup>
-                  <FormLabel htmlFor="cash-balance" className="text-sm font-medium">
+                  <FormLabel
+                    htmlFor="cash-balance"
+                    className="text-sm font-medium text-gray-800 dark:text-gray-200"
+                  >
                     Cash Balance ($)
                   </FormLabel>
                   <Input
@@ -659,13 +691,16 @@ export default function Simulationsdb() {
                     value={companyForm.cashBalance}
                     onChange={handleCompanyInput}
                     placeholder="1000000"
-                    className="mt-1"
+                    className="mt-1 dark:bg-gray-800 dark:text-white"
                     required
                   />
                 </FormGroup>
 
                 <FormGroup>
-                  <FormLabel htmlFor="total-assets" className="text-sm font-medium">
+                  <FormLabel
+                    htmlFor="total-assets"
+                    className="text-sm font-medium text-gray-800 dark:text-gray-200"
+                  >
                     Total Assets ($)
                   </FormLabel>
                   <Input
@@ -677,13 +712,16 @@ export default function Simulationsdb() {
                     value={companyForm.totalAssets}
                     onChange={handleCompanyInput}
                     placeholder="1000000"
-                    className="mt-1"
+                    className="mt-1 dark:bg-gray-800 dark:text-white"
                     required
                   />
                 </FormGroup>
 
                 <FormGroup>
-                  <FormLabel htmlFor="total-liabilities" className="text-sm font-medium">
+                  <FormLabel
+                    htmlFor="total-liabilities"
+                    className="text-sm font-medium text-gray-800 dark:text-gray-200"
+                  >
                     Total Liabilities ($)
                   </FormLabel>
                   <Input
@@ -695,21 +733,29 @@ export default function Simulationsdb() {
                     value={companyForm.totalLiabilities}
                     onChange={handleCompanyInput}
                     placeholder="0"
-                    className="mt-1"
+                    className="mt-1 dark:bg-gray-800 dark:text-white"
                     required
                   />
                 </FormGroup>
 
                 <FormGroup>
-                  <FormLabel htmlFor="credit-rating" className="text-sm font-medium">
+                  <FormLabel
+                    htmlFor="credit-rating"
+                    className="text-sm font-medium text-gray-800 dark:text-gray-200"
+                  >
                     Credit Rating
                   </FormLabel>
                   <select
                     id="credit-rating"
                     name="creditRating"
                     value={companyForm.creditRating}
-                    onChange={(e) => setCompanyForm({ ...companyForm, creditRating: e.target.value })}
-                    className="mt-1 h-10 w-full px-3 py-2 border border-input bg-background rounded-md text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    onChange={(e) =>
+                      setCompanyForm({
+                        ...companyForm,
+                        creditRating: e.target.value,
+                      })
+                    }
+                    className="mt-1 h-10 w-full px-3 py-2 border border-input bg-background dark:bg-gray-800 dark:text-white rounded-md text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     required
                   >
                     <option value="AAA">AAA</option>
@@ -726,7 +772,10 @@ export default function Simulationsdb() {
                 </FormGroup>
 
                 <FormGroup className="md:col-span-2">
-                  <FormLabel htmlFor="brand-value" className="text-sm font-medium">
+                  <FormLabel
+                    htmlFor="brand-value"
+                    className="text-sm font-medium text-gray-800 dark:text-gray-200"
+                  >
                     Brand Value ($)
                   </FormLabel>
                   <Input
@@ -738,7 +787,7 @@ export default function Simulationsdb() {
                     value={companyForm.brandValue}
                     onChange={handleCompanyInput}
                     placeholder="50000"
-                    className="mt-1"
+                    className="mt-1 dark:bg-gray-800 dark:text-white"
                     required
                   />
                 </FormGroup>
