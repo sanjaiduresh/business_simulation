@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
         cookieStore.set('token', token, {
             httpOnly: true,
             path: '/',
-            secure: true
+            secure: process.env.NODE_ENV === 'production'
         })
 
         return NextResponse.json({

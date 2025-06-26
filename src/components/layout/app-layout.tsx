@@ -336,24 +336,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       header={
         <Header
           title="Business Simulation"
-          actions={
-            <>
-              <div className="flex items-center bg-gray-100 rounded-md px-3 py-1.5">
-                <span className="text-sm font-medium text-gray-500 mr-2">
-                  Period:
-                </span>
-                <span className="text-sm font-medium text-gray-900">
-                  Q{currentPeriod + 1} 2025
-                </span>
-              </div>
-              <Button
-                variant="primary"
-                onClick={() => setCurrentPeriod(currentPeriod + 1)}
-              >
-                Advance to Next Period
-              </Button>
-            </>
-          }
+
         />
       }
     >

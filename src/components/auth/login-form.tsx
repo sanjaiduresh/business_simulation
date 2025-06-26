@@ -27,6 +27,7 @@ export function LoginForm({ onSuccess, onRegisterClick }: LoginFormProps) {
       await login(email, password);
       if (onSuccess) onSuccess();
     } catch (err) {
+      console.error("Login error:", err);
       setFormError((err as Error).message || 'Login failed');
     }
   };

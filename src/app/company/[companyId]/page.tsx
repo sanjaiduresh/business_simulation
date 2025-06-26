@@ -135,114 +135,116 @@ export default function CompanyDashboard() {
     setProductForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle product creation
-  const handleCreateProduct = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const response = await fetch(`/api/product/create`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ...productForm, companyId }),
-      });
+// Fetch company and products
+const fetchCompanyAndProducts = async () => {
+  if (!companyId) {
+    setError("Company ID is missing");
+    setLoading(false);
+    return;
+  }
 
-      if (!response.ok) {
-        throw new Error(`Failed to create product: ${response.statusText}`);
-      }
+  try {
+    setLoading(true);
+    // Fetch company
+    const companyResponse = await fetch(`/api/company/${companyId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-      const data = (await response.json()) as { id: string };
-      submitProductDevelopment({
-        action: "new_product",
-        ...productForm,
-        companyId,
-        productId: data.id,
-      });
-      setOpen(false);
-      setProductForm({
-        name: "",
-        description: "",
-        category: "mid-range",
-        qualityRating: 6,
-        innovationRating: 5,
-        sustainabilityRating: 5,
-        productionCost: 100,
-        sellingPrice: 200,
-        developmentCost: 100000,
-        status: "development",
-      });
+    if (!companyResponse.ok) {
+      throw new Error(`Failed to fetch company: ${companyResponse.statusText}`);
+    }
 
-      // Refresh products after creation
-      const productsResponse = await fetch(`/api/product/${companyId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (productsResponse.ok) {
-        const productsData = await productsResponse.json();
-        setCompanyProducts(productsData as Product[]);
-      }
-    } catch (err) {}
-  };
+    const companyData = await companyResponse.json();
+    setCompany(companyData as Company);
 
-  useEffect(() => {
-    const fetchCompanyAndProducts = async () => {
-      if (!companyId) {
-        setError("Company ID is missing");
-        setLoading(false);
-        return;
-      }
+    // Fetch products
+    const productsResponse = await fetch(`/api/product/${companyId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-      try {
-        setLoading(true);
+    if (!productsResponse.ok) {
+      throw new Error(`Failed to fetch products: ${productsResponse.statusText}`);
+    }
 
-        // Fetch company
-        const companyResponse = await fetch(`/api/company/${companyId}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+    const productsData = await productsResponse.json();
+    setCompanyProducts(productsData as Product[]);
 
-        if (!companyResponse.ok) {
-          throw new Error(
-            `Failed to fetch company: ${companyResponse.statusText}`
-          );
-        }
+    setError(null);
+  } catch (err) {
+    setError(err instanceof Error ? err.message : "An error occurred");
+    console.error("Error fetching data:", err);
+  } finally {
+    setLoading(false);
+  }
+};
 
-        const companyData = await companyResponse.json();
-        setCompany(companyData as Company);
+// Handle product creation
+const handleCreateProduct = async (e: React.FormEvent) => {
+  e.preventDefault();
+  try {
+    // Create new product
+    const response = await fetch(`/api/product/create`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ...productForm, companyId }),
+    });
 
-        // Fetch products
-        const productsResponse = await fetch(`/api/product/${companyId}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+    if (!response.ok) {
+      throw new Error(`Failed to create product: ${response.statusText}`);
+    }
 
-        if (!productsResponse.ok) {
-          throw new Error(
-            `Failed to fetch products: ${productsResponse.statusText}`
-          );
-        }
+    const data = await response.json() as { id: string };
 
-        const productsData = await productsResponse.json();
-        setCompanyProducts(productsData as Product[]);
+    // Submit product development decision
+    submitProductDevelopment({
+      action: "new_product",
+      ...productForm,
+      companyId,
+      productId: data.id,
+    });
 
-        setError(null);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
-        console.error("Error fetching data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Update company cash balance by subtracting development cost
+    if (company) {
+      const updatedCompany = {
+        ...company,
+        cashBalance: company.cashBalance - productForm.developmentCost,
+      };
+      setCompany(updatedCompany);
+    }
 
-    fetchCompanyAndProducts();
-  }, [companyId]);
+    // Refresh products and company data to ensure consistency
+    await fetchCompanyAndProducts();
 
+    setOpen(false);
+    // Reset form
+    setProductForm({
+      name: "",
+      description: "",
+      category: "mid-range",
+      qualityRating: 6,
+      innovationRating: 5,
+      sustainabilityRating: 5,
+      productionCost: 100,
+      sellingPrice: 200,
+      developmentCost: 100000,
+      status: "development",
+    });
+  } catch (err) {
+    console.error("Error creating product:", err);
+  }
+};
+
+useEffect(() => {
+  fetchCompanyAndProducts();
+}, [companyId]);
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">

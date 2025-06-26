@@ -68,6 +68,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
+    // Check if company has sufficient funds for development cost
+    const devCost = developmentCost || 0;
+    if (company.cash_balance < devCost) {
+      return NextResponse.json(
+        { error: 'Insufficient funds: Company does not have enough cash for development cost' },
+        { status: 400 }
+      );
+    }
+
     // Prepare product data
     const now = new Date().toISOString();
     const productData = {
@@ -80,7 +89,7 @@ export async function POST(req: NextRequest) {
       sustainabilityRating: sustainabilityRating || 0,
       productionCost: productionCost || 0,
       sellingPrice: sellingPrice || 0,
-      developmentCost: developmentCost || 0,
+      developmentCost: devCost,
       status,
       createdAt: now,
       updatedAt: now,
@@ -88,6 +97,20 @@ export async function POST(req: NextRequest) {
 
     // Create product in the database
     const productId = await db.createProduct(productData);
+
+    // Update company cash balance by deducting development cost
+    await db.updateCompany(companyId, {
+      name: company.name,
+      description: company.description,
+      logoUrl: company.logo_url,
+      cashBalance: company.cash_balance - devCost,
+      totalAssets: company.total_assets,
+      totalLiabilities: company.total_liabilities,
+      creditRating: company.credit_rating,
+      brandValue: company.brand_value,
+      data: company.data,
+      updatedAt: now,
+    });
 
     // Fetch the newly created product to return
     const createdProduct = await db.getProduct(productId);
